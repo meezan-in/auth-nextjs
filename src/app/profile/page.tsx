@@ -14,17 +14,10 @@ export default function ProfilePage() {
     try {
       await axios.get("/api/users/logout");
       toast.success("Logout successful");
-      await router.push("/login");
+      router.push("/login");
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.log(error.response?.data?.error || error.message);
-        toast.error(error.response?.data?.error || error.message);
-      } else if (error instanceof Error) {
-        console.log(error.message);
-        toast.error(error.message);
-      } else {
-        toast.error("Logout failed");
-      }
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("Something went wrong. Please try again.");
     }
   };
 
@@ -44,16 +37,8 @@ export default function ProfilePage() {
         toast.error("User ID not found in response.");
       }
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.log(error.response?.data?.error || error.message);
-        toast.error(error.response?.data?.error || error.message);
-      } else if (error instanceof Error) {
-        console.log(error.message);
-        toast.error(error.message);
-      } else {
-        toast.error("Failed to fetch user details.");
-      }
-      setData("Nothing");
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

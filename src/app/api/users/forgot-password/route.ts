@@ -94,8 +94,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: "If this email exists, a reset link has been sent.",
     });
-  } catch (error: any) {
-    console.error("Forgot password error:", error);
+  } catch (error: unknown) {
+    console.error("Error sending reset link:", error);
     return NextResponse.json(
       { error: "Error sending reset link." },
       { status: 500 }

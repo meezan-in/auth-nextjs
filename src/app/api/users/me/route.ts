@@ -23,9 +23,13 @@ export async function GET(request: NextRequest) {
       message: "User found",
       data: user,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      typeof error === "object" && error !== null && "message" in error
+        ? (error as { message?: string }).message
+        : undefined;
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: errorMessage || "Internal Server Error" },
       { status: 500 }
     );
   }

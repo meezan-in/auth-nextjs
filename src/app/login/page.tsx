@@ -18,15 +18,8 @@ export default function LoginPage() {
       toast.success("Login success");
       router.push("/profile");
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.error || "Login failed");
-      } else if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("Login failed");
-      }
-    } finally {
-      setLoading(false);
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("Something went wrong. Please try again.");
     }
   };
 
