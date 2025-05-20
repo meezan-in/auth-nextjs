@@ -25,8 +25,13 @@ export default function VerifyEmailPage() {
         setVerified(true);
         setError("");
       } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          setError(error.response?.data?.error || "Verification failed");
+        if (error && typeof error === "object" && "response" in error) {
+          // If using axios:
+          setError(
+            (error as any)?.response?.data?.error || "Verification failed"
+          );
+        } else if (error instanceof Error) {
+          setError(error.message || "Verification failed");
         } else {
           setError("Verification failed");
         }

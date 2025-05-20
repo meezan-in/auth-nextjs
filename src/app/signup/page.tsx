@@ -22,22 +22,13 @@ export default function SignupPage() {
       toast.success("Signup successful! Please check your email.");
       router.push("/login");
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.error || error.message || "Signup failed");
-      } else if (error instanceof Error) {
-        toast.error(error.message || "Signup failed");
-      } else {
-        toast.error("Signup failed");
-      }
-    } finally {
-      setLoading(false);
+      if (error instanceof Error) toast.error(error.message);
+      else toast.error("Something went wrong. Please try again.");
     }
   };
 
   useEffect(() => {
-    setButtonDisabled(
-      !user.email || !user.password || !user.username
-    );
+    setButtonDisabled(!user.email || !user.password || !user.username);
   }, [user]);
 
   return (
@@ -47,7 +38,7 @@ export default function SignupPage() {
           {loading ? "Processing..." : "Sign Up"}
         </h1>
         <form
-          onSubmit={e => {
+          onSubmit={(e) => {
             e.preventDefault();
             if (!buttonDisabled) onSignup();
           }}
@@ -61,7 +52,7 @@ export default function SignupPage() {
             id="username"
             type="text"
             value={user.username}
-            onChange={e => setUser({ ...user, username: e.target.value })}
+            onChange={(e) => setUser({ ...user, username: e.target.value })}
             placeholder="Enter your username"
             required
           />
@@ -74,7 +65,7 @@ export default function SignupPage() {
             id="email"
             type="email"
             value={user.email}
-            onChange={e => setUser({ ...user, email: e.target.value })}
+            onChange={(e) => setUser({ ...user, email: e.target.value })}
             placeholder="Enter your email"
             required
           />
@@ -87,7 +78,7 @@ export default function SignupPage() {
             id="password"
             type="password"
             value={user.password}
-            onChange={e => setUser({ ...user, password: e.target.value })}
+            onChange={(e) => setUser({ ...user, password: e.target.value })}
             placeholder="Enter your password"
             required
           />
@@ -105,10 +96,7 @@ export default function SignupPage() {
           </button>
         </form>
         <div className="flex justify-center mt-6">
-          <Link
-            href="/login"
-            className="text-blue-400 hover:underline text-sm"
-          >
+          <Link href="/login" className="text-blue-400 hover:underline text-sm">
             Already have an account? Login
           </Link>
         </div>

@@ -2,15 +2,19 @@ import nodemailer from "nodemailer";
 import User from "@/models/userModel";
 import bcryptjs from "bcryptjs";
 
+type EmailType = "VERIFY" | "RESET";
+
+interface SendEmailProps {
+  email: string;
+  emailType: EmailType;
+  userId: string;
+}
+
 export const sendEmail = async ({
   email,
   emailType,
   userId,
-}: {
-  email: string;
-  emailType: "VERIFY" | "RESET";
-  userId: string;
-}) => {
+}: SendEmailProps) => {
   try {
     // Check all required environment variables
     const requiredEnv = [
@@ -73,6 +77,10 @@ export const sendEmail = async ({
       await transport.verify();
       console.log("Mailtrap SMTP connection verified.");
     } catch (smtpError) {
+      if (smtpError instanceof Error) {
+        console.error("Mailtrap SMTP connection failed:", smtpError.message);
+        throw new Error("SMTP connection failed: " + smtpError.message);
+      }
       console.error("Mailtrap SMTP connection failed:", smtpError);
       throw new Error("SMTP connection failed.");
     }
@@ -101,13 +109,17 @@ export const sendEmail = async ({
       console.log("Mailtrap response:", mailResponse);
       return mailResponse;
     } catch (mailError) {
+      if (mailError instanceof Error) {
+        console.error("Nodemailer sendMail error:", mailError.message);
+        throw new Error("Failed to send email: " + mailError.message);
+      }
       console.error("Nodemailer sendMail error:", mailError);
       throw new Error("Failed to send email.");
     }
   } catch (error: unknown) {
     console.error("Error sending email:", error);
-    if (error && typeof error === "object" && "message" in error) {
-      throw new Error((error as { message: string }).message);
+    if (error instanceof Error) {
+      throw new Error(error.message);
     } else {
       throw new Error("Unknown mailer error");
     }

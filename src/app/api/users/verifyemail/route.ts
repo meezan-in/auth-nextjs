@@ -40,10 +40,16 @@ export async function POST(request: NextRequest) {
       message: "Email verified successfully.",
       success: true,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Email verification error:", error);
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
-      { error: error.message || "Server error" },
+      { error: "Server error" },
       { status: 500 }
     );
   }
