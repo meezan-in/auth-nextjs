@@ -12,6 +12,22 @@ export const sendEmail = async ({
   userId: string;
 }) => {
   try {
+    // Check all required environment variables
+    const requiredEnv = [
+      "MAILTRAP_HOST",
+      "MAILTRAP_PORT",
+      "MAILTRAP_USER",
+      "MAILTRAP_PASS",
+      "FROM_EMAIL",
+      "DOMAIN",
+    ];
+    for (const envVar of requiredEnv) {
+      if (!process.env[envVar]) {
+        console.error(`Environment variable ${envVar} is not set.`);
+        throw new Error(`Server misconfiguration: ${envVar} not set.`);
+      }
+    }
+
     // Create a hashed token
     const hashedToken = await bcryptjs.hash(userId.toString(), 10);
 
@@ -42,19 +58,23 @@ export const sendEmail = async ({
       throw new Error("User not found or update failed");
     }
 
-    // Use environment variables for sensitive info
+    // Set up Nodemailer transporter with Mailtrap SMTP credentials
     const transport = nodemailer.createTransport({
-      host: process.env.MAILTRAP_HOST || "sandbox.smtp.mailtrap.io",
-      port: Number(process.env.MAILTRAP_PORT) || 2525,
+      host: process.env.MAILTRAP_HOST,
+      port: Number(process.env.MAILTRAP_PORT),
       auth: {
-        user: process.env.MAILTRAP_USER || "be0a1111a21ab1",
-        pass: process.env.MAILTRAP_PASS || "cd76484dece72f",
+        user: process.env.MAILTRAP_USER,
+        pass: process.env.MAILTRAP_PASS,
       },
     });
 
-    // Check for required environment variables
-    if (!process.env.DOMAIN) {
-      throw new Error("DOMAIN environment variable is not set.");
+    // Verify SMTP connection before sending mail
+    try {
+      await transport.verify();
+      console.log("Mailtrap SMTP connection verified.");
+    } catch (smtpError) {
+      console.error("Mailtrap SMTP connection failed:", smtpError);
+      throw new Error("SMTP connection failed.");
     }
 
     // Choose the correct URL path for each email type
@@ -62,7 +82,7 @@ export const sendEmail = async ({
     const verificationLink = `${process.env.DOMAIN}/${actionPath}?token=${hashedToken}&userId=${userId}`;
 
     const mailOptions = {
-      from: process.env.FROM_EMAIL || "no-reply@yourapp.com",
+      from: process.env.FROM_EMAIL,
       to: email,
       subject:
         emailType === "VERIFY" ? "Verify your email" : "Reset your password",
@@ -70,18 +90,22 @@ export const sendEmail = async ({
         <p>
           Click <a href="${verificationLink}">here</a> to ${
         emailType === "VERIFY" ? "verify your email" : "reset your password"
-      } or copy and paste the link below in your browser.<br>
-          ${verificationLink}
+      }.<br>
         </p>
       `,
     };
 
     // Send the email and log the result
-    const mailResponse = await transport.sendMail(mailOptions);
-    console.log("Mailtrap response:", mailResponse);
-    return mailResponse;
+    try {
+      const mailResponse = await transport.sendMail(mailOptions);
+      console.log("Mailtrap response:", mailResponse);
+      return mailResponse;
+    } catch (mailError) {
+      console.error("Nodemailer sendMail error:", mailError);
+      throw new Error("Failed to send email.");
+    }
   } catch (error: any) {
     console.error("Error sending email:", error);
-    throw new Error(error.message);
+    throw new Error(error.message || "Unknown mailer error");
   }
 };

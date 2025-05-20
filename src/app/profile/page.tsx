@@ -25,15 +25,11 @@ export default function ProfilePage() {
     setLoading(true);
     try {
       const res = await axios.get("/api/users/me");
-      console.log("API response:", res.data);
-
-      // Safely extract user ID from the response
       const userId =
         res.data?.data?._id ||
         res.data?._id ||
         res.data?.data?.id ||
         "No ID found";
-
       setData(userId);
       if (userId !== "No ID found") {
         toast.success("User details fetched!");
@@ -50,31 +46,43 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <h1>Profile</h1>
-      <hr />
-      <p>Profile Page</p>
-      <h2 className="p-3 mt-3 rounded bg-green-700">
-        {data === "Nothing" ? (
-          "Nothing"
-        ) : (
-          <Link href={`/profile/${data}`}>{data}</Link>
-        )}
-      </h2>
-      <hr />
-      <button
-        onClick={logout}
-        className="bg-blue-500 mt-4 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Logout
-      </button>
-      <button
-        onClick={getUserDetails}
-        className="bg-purple-800 mt-4 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
-        disabled={loading}
-      >
-        {loading ? "Loading..." : "Get User Details"}
-      </button>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 px-4">
+      <div className="w-full max-w-lg bg-gray-900 rounded-2xl shadow-lg p-10 border border-gray-700 flex flex-col items-center">
+        <h1 className="text-3xl font-bold text-blue-400 mb-2">Profile</h1>
+        <p className="text-gray-300 mb-6">Welcome to your profile page!</p>
+        <div className="flex flex-col items-center gap-2 mb-6">
+          <span className="text-gray-400 text-sm">User ID</span>
+          <span className="px-4 py-2 rounded-lg bg-green-600 text-white font-mono text-base break-all shadow">
+            {data === "Nothing" ? (
+              "Nothing"
+            ) : (
+              <Link href={`/profile/${data}`} className="hover:underline">
+                {data}
+              </Link>
+            )}
+          </span>
+        </div>
+        <div className="flex flex-col md:flex-row gap-4 w-full mt-4">
+          <button
+            onClick={getUserDetails}
+            className={`flex-1 bg-purple-700 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition ${
+              loading ? "opacity-60 cursor-not-allowed" : ""
+            }`}
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Get User Details"}
+          </button>
+          <button
+            onClick={logout}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+      <div className="mt-8 text-center text-gray-500 text-xs">
+        Developed by Mohammad Meezan &copy; {new Date().getFullYear()}
+      </div>
     </div>
   );
 }
