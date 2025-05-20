@@ -24,8 +24,12 @@ export default function VerifyEmailPage() {
         await axios.post("/api/users/verifyemail", { token, userId });
         setVerified(true);
         setError("");
-      } catch (error: any) {
-        setError(error?.response?.data?.error || "Verification failed");
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          setError(error.response?.data?.error || "Verification failed");
+        } else {
+          setError("Verification failed");
+        }
         setVerified(false);
       }
     };

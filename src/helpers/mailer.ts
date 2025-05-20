@@ -104,8 +104,12 @@ export const sendEmail = async ({
       console.error("Nodemailer sendMail error:", mailError);
       throw new Error("Failed to send email.");
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error sending email:", error);
-    throw new Error(error.message || "Unknown mailer error");
+    if (error && typeof error === "object" && "message" in error) {
+      throw new Error((error as { message: string }).message);
+    } else {
+      throw new Error("Unknown mailer error");
+    }
   }
 };
