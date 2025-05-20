@@ -1,25 +1,39 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { connect } from "@/dbConfig/dbConfig";
 import User from "@/models/userModel";
 import { NextRequest, NextResponse } from "next/server";
+
+// Define TypeScript interfaces for request/response shapes
+interface VerificationRequest {
+  token: string;
+  userId: string;
+}
+
+interface SuccessResponse {
+  message: string;
+  success: boolean;
+}
+
+interface ErrorResponse {
+  error: string;
+}
 
 export async function POST(request: NextRequest) {
   await connect();
 
   try {
-    // Ensure the request body is parsed and has correct shape
-    const body: { token?: string; userId?: string } = await request.json();
+    // Parse and validate request body with proper typing
+    const body: Partial<VerificationRequest> = await request.json();
     const { token, userId } = body;
 
-    // Validate input
+    // Input validation
     if (!token || !userId) {
-      return NextResponse.json(
+      return NextResponse.json<ErrorResponse>(
         { error: "Missing token or user ID" },
         { status: 400 }
       );
     }
 
-    // Find user with matching token and non-expired token
+    // Find user with matching token
     const user = await User.findOne({
       _id: userId,
       verifyToken: token,
@@ -27,25 +41,32 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
+      return NextResponse.json<ErrorResponse>(
         { error: "Invalid or expired token" },
         { status: 400 }
       );
     }
 
-    // Mark user as verified and clear token fields
+    // Update user verification status
     user.isVerified = true;
     user.verifyToken = undefined;
     user.verifyTokenExpiry = undefined;
     await user.save();
 
-    return NextResponse.json({
-      message: "Email verified successfully.",
+    return NextResponse.json<SuccessResponse>({
+      message: "Email verified successfully",
       success: true,
     });
+
   } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "An unknown error occurred";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    // Type-safe error handling
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : "An unknown error occurred";
+    
+    return NextResponse.json<ErrorResponse>(
+      { error: errorMessage },
+      { status: 500 }
+    );
   }
 }

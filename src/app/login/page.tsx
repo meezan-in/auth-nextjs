@@ -1,26 +1,36 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+// Define TypeScript interfaces
+interface UserCredentials {
+  email: string;
+  password: string;
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  const [user, setUser] = useState({ email: "", password: "" });
-  const [buttonDisabled, setButtonDisabled] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<UserCredentials>({ 
+    email: "", 
+    password: "" 
+  });
+  const [buttonDisabled, setButtonDisabled] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const onLogin = async () => {
+  const onLogin = async (): Promise<void> => {
     try {
       setLoading(true);
-      await axios.post("/api/users/login", user);
+      const response = await axios.post("/api/users/login", user);
       toast.success("Login success");
       router.push("/profile");
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
+      } else if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.error || "Login failed");
       } else {
         toast.error("Something went wrong. Please try again.");
       }
@@ -33,19 +43,26 @@ export default function LoginPage() {
     setButtonDisabled(!(user.email && user.password));
   }, [user]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setUser(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onLogin();
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 px-4">
       <div className="w-full max-w-md bg-gray-900 rounded-2xl shadow-lg p-8 border border-gray-700">
         <h1 className="text-3xl font-bold text-center text-blue-400 mb-6">
           {loading ? "Processing..." : "Sign In"}
         </h1>
-        <form
-          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-            onLogin();
-          }}
-          className="flex flex-col gap-4"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label htmlFor="email" className="font-medium text-gray-300">
             Email
           </label>
@@ -55,7 +72,7 @@ export default function LoginPage() {
             type="email"
             autoComplete="email"
             value={user.email}
-            onChange={(e) => setUser({ ...user, email: e.target.value })}
+            onChange={handleInputChange}
             placeholder="Enter your email"
             required
           />
@@ -69,7 +86,7 @@ export default function LoginPage() {
             type="password"
             autoComplete="current-password"
             value={user.password}
-            onChange={(e) => setUser({ ...user, password: e.target.value })}
+            onChange={handleInputChange}
             placeholder="Enter your password"
             required
           />

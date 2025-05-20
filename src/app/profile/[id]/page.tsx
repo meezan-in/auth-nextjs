@@ -1,29 +1,28 @@
 // src/app/profile/[id]/page.tsx
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from "next";
 
-// Use this type to match Next.js's expected PageProps
-type NextPageProps = {
-  params: { id: string } | Promise<{ id: string }>;
+// Define proper TypeScript interfaces
+interface ProfileParams {
+  id: string;
+}
+
+interface ProfilePageProps {
+  params: ProfileParams;
   searchParams?: { [key: string]: string | string[] | undefined };
-};
+}
 
 /**
  * UserProfile Component
  *
  * Displays a user profile page with dynamic metadata and responsive design.
  *
- * @param {Object} props - Component props
- * @param {Object|Promise} props.params - Route parameters (may be wrapped in Promise)
- * @returns {Promise<JSX.Element>} The rendered profile page
+ * @param {ProfilePageProps} props - Component props containing route parameters
+ * @returns {JSX.Element} The rendered profile page
  */
 export async function generateMetadata({
   params,
-}: NextPageProps): Promise<Metadata> {
-  // Handle both direct params and Promise-wrapped params
-  const resolvedParams = params instanceof Promise ? await params : params;
-  const userName =
-    resolvedParams.id.charAt(0).toUpperCase() + resolvedParams.id.slice(1);
+}: ProfilePageProps): Promise<Metadata> {
+  const userName = params.id.charAt(0).toUpperCase() + params.id.slice(1);
 
   return {
     title: `${userName}'s Profile | NextAuth`,
@@ -35,10 +34,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function UserProfile({ params }: NextPageProps) {
-  // Handle both direct params and Promise-wrapped params
-  const resolvedParams = params instanceof Promise ? await params : params;
-  const { id } = resolvedParams;
+export default function UserProfile({ params }: ProfilePageProps) {
+  const { id } = params;
   const userInitial = id.charAt(0).toUpperCase();
 
   return (

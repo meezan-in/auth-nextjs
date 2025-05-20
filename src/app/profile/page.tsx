@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import axios, { AxiosError } from "axios";
 import Link from "next/link";
@@ -14,18 +13,23 @@ interface UserResponse {
   };
 }
 
+interface ErrorResponse {
+  message?: string;
+  error?: string;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const [data, setData] = useState<string>("Nothing");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       await axios.get("/api/users/logout");
       toast.success("Logout successful");
       router.push("/login");
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError<ErrorResponse>(error)) {
         toast.error(error.response?.data?.message || error.message);
       } else if (error instanceof Error) {
         toast.error(error.message);
@@ -35,7 +39,7 @@ export default function ProfilePage() {
     }
   };
 
-  const getUserDetails = async () => {
+  const getUserDetails = async (): Promise<void> => {
     setLoading(true);
     try {
       const res = await axios.get<UserResponse>("/api/users/me");
@@ -46,8 +50,8 @@ export default function ProfilePage() {
       } else {
         toast.error("User ID not found in response.");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError<ErrorResponse>(error)) {
         toast.error(error.response?.data?.message || error.message);
       } else if (error instanceof Error) {
         toast.error(error.message);
@@ -83,12 +87,14 @@ export default function ProfilePage() {
               loading ? "opacity-60 cursor-not-allowed" : ""
             }`}
             disabled={loading}
+            aria-busy={loading}
           >
             {loading ? "Loading..." : "Get User Details"}
           </button>
           <button
             onClick={logout}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
+            aria-label="Logout"
           >
             Logout
           </button>
