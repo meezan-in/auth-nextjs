@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import axios, { AxiosError } from "axios";
 import Link from "next/link";

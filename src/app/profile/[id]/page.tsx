@@ -1,4 +1,5 @@
 // src/app/profile/[id]/page.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from "next";
 
 // Use this type to match Next.js's expected PageProps

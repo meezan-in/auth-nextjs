@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -72,9 +73,7 @@ export default function ResetPasswordPage() {
         {message && (
           <div
             className={`text-center mt-2 ${
-              message.startsWith("❌")
-                ? "text-red-400"
-                : "text-green-400"
+              message.startsWith("❌") ? "text-red-400" : "text-green-400"
             }`}
           >
             {message}

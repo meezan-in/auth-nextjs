@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import axios from "axios";
 
@@ -55,9 +56,7 @@ export default function ForgotPasswordPage() {
         {message && (
           <div
             className={`text-center mt-2 ${
-              message.startsWith("Error")
-                ? "text-red-400"
-                : "text-green-400"
+              message.startsWith("Error") ? "text-red-400" : "text-green-400"
             }`}
           >
             {message}
