@@ -1,4 +1,8 @@
-export default function UserProfile({ params }: any) {
+interface UserProfileProps {
+  params: { id: string };
+}
+
+export default function UserProfile({ params }: UserProfileProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 px-4">
       <div className="w-full max-w-lg bg-gray-900 rounded-2xl shadow-lg p-10 border border-gray-700 flex flex-col items-center">
