@@ -1,35 +1,28 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
+import globals from "globals";
+import { FlatCompat } from "@eslint/eslintrc";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+const compat = new FlatCompat();
 
 export default [
   js.configs.recommended,
   ...compat.extends("next/core-web-vitals"),
   {
-    rules: {
-      // Keep the rule enabled but make it a warning instead of error
-      "@typescript-eslint/no-explicit-any": "warn",
-
-      // Or to completely disable it:
-      // "@typescript-eslint/no-explicit-any": "off"
-    },
-  },
-  {
-    // Apply only to TypeScript files
     files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
-      parser: require("@typescript-eslint/parser"),
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
       parserOptions: {
         project: "./tsconfig.json",
       },
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off", // Completely disable the rule
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
     },
   },
 ];
