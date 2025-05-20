@@ -1,14 +1,14 @@
 "use client";
 
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function VerifyEmailPage() {
-  const [token, setToken] = useState("");
-  const [userId, setUserId] = useState("");
-  const [verified, setVerified] = useState(false);
-  const [error, setError] = useState("");
+  const [token, setToken] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+  const [verified, setVerified] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -24,14 +24,12 @@ export default function VerifyEmailPage() {
         await axios.post("/api/users/verifyemail", { token, userId });
         setVerified(true);
         setError("");
-      } catch (error: unknown) {
-        if (error && typeof error === "object" && "response" in error) {
-          // If using axios:
-          setError(
-            (error as any)?.response?.data?.error || "Verification failed"
-          );
-        } else if (error instanceof Error) {
-          setError(error.message || "Verification failed");
+      } catch (err) {
+        const axiosError = err as AxiosError<{ error: string }>;
+        if (axiosError.response?.data?.error) {
+          setError(axiosError.response.data.error);
+        } else if (axiosError.message) {
+          setError(axiosError.message);
         } else {
           setError("Verification failed");
         }

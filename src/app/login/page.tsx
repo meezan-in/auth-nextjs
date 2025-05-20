@@ -18,8 +18,13 @@ export default function LoginPage() {
       toast.success("Login success");
       router.push("/profile");
     } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message);
-      else toast.error("Something went wrong. Please try again.");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,7 +39,7 @@ export default function LoginPage() {
           {loading ? "Processing..." : "Sign In"}
         </h1>
         <form
-          onSubmit={(e) => {
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             onLogin();
           }}

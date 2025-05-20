@@ -1,9 +1,17 @@
 "use client";
+
 import axios from "axios";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+interface UserResponse {
+  data: {
+    _id?: string;
+    id?: string;
+  };
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -16,20 +24,19 @@ export default function ProfilePage() {
       toast.success("Logout successful");
       router.push("/login");
     } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message);
-      else toast.error("Something went wrong. Please try again.");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     }
   };
 
   const getUserDetails = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("/api/users/me");
-      const userId =
-        res.data?.data?._id ||
-        res.data?._id ||
-        res.data?.data?.id ||
-        "No ID found";
+      const res = await axios.get<UserResponse>("/api/users/me");
+      const userId = res.data?.data?._id || res.data?.data?.id || "No ID found";
       setData(userId);
       if (userId !== "No ID found") {
         toast.success("User details fetched!");
@@ -37,8 +44,11 @@ export default function ProfilePage() {
         toast.error("User ID not found in response.");
       }
     } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message);
-      else toast.error("Something went wrong. Please try again.");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

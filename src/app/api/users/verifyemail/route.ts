@@ -6,7 +6,9 @@ export async function POST(request: NextRequest) {
   await connect();
 
   try {
-    const { token, userId } = await request.json();
+    // Ensure the request body is parsed and has correct shape
+    const body: { token?: string; userId?: string } = await request.json();
+    const { token, userId } = body;
 
     // Validate input
     if (!token || !userId) {
