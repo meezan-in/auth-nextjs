@@ -1,6 +1,6 @@
 "use client";
 
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -23,8 +23,10 @@ export default function ProfilePage() {
       await axios.get("/api/users/logout");
       toast.success("Logout successful");
       router.push("/login");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || error.message);
+      } else if (error instanceof Error) {
         toast.error(error.message);
       } else {
         toast.error("Something went wrong. Please try again.");
@@ -43,8 +45,10 @@ export default function ProfilePage() {
       } else {
         toast.error("User ID not found in response.");
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || error.message);
+      } else if (error instanceof Error) {
         toast.error(error.message);
       } else {
         toast.error("Something went wrong. Please try again.");
