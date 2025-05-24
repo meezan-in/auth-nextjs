@@ -4,16 +4,18 @@ import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-connect();
-
 export async function POST(request: NextRequest) {
+  await connect();
+
   try {
     const reqBody = await request.json();
     const { email, password } = reqBody;
-    console.log(reqBody);
+    console.log("Login attempt:", reqBody);
 
-    // check if user already exists
-    const user = await User.findOne({ email }); // Use 'findOne', not 'FindOne'
+    // Check if user exists
+    const user = await User.findOne({ email });
+    console.log("User found:", user);
+
     if (!user) {
       return NextResponse.json(
         { error: "User does not exist" },
@@ -21,30 +23,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // check if password is correct
+    // Optional: Check if user is verified
+    // if (!user.isVerified) {
+    //   return NextResponse.json(
+    //     { error: "Please verify your email before logging in." },
+    //     { status: 401 }
+    //   );
+    // }
+
+    // Check if password is correct
     const validPassword = await bcryptjs.compare(password, user.password);
+    console.log("Password valid:", validPassword);
+
     if (!validPassword) {
       return NextResponse.json({ error: "Invalid password" }, { status: 400 });
     }
 
-    // create token data
+    // Create token data
     const tokenData = {
-      id: user._id,
+      id: user._id.toString(),
       username: user.username,
       email: user.email,
     };
 
-    // create token
+    // Create JWT token
     const token = jwt.sign(tokenData, process.env.TOKEN_SECRET!, {
       expiresIn: "1d",
     });
 
+    // Prepare response and set cookie
     const response = NextResponse.json({
       message: "Login successful",
       success: true,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+      },
     });
 
-    response.cookies.set("token", token, { httpOnly: true });
+    response.cookies.set({
+      name: "token",
+      value: token,
+      httpOnly: true,
+      path: "/",
+      // secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24, // 1 day
+      sameSite: "lax",
+    });
 
     return response;
   } catch (error: unknown) {
@@ -52,6 +78,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error) {
       errorMessage = error.message;
     }
+    console.error("Login error:", error);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

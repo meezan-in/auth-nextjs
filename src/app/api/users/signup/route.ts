@@ -1,15 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// /app/api/users/register/route.ts
+
 import { connect } from "@/dbConfig/dbConfig";
 import User from "@/models/userModel";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-import { sendEmail } from "@/helpers/mailer"; // Make sure this import is correct
+import { sendEmail } from "@/helpers/mailer";
 
 export async function POST(request: NextRequest) {
+  console.log("🔁 Register endpoint hit");
+
   try {
     await connect();
 
     const reqBody = await request.json();
+    console.log("📩 Received body:", reqBody);
+
     const { username, email, password } = reqBody;
 
     if (!username || !email || !password) {
@@ -19,7 +24,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
@@ -37,34 +41,20 @@ export async function POST(request: NextRequest) {
       isVerified: false,
     });
 
-    let savedUser;
-    try {
-      savedUser = await newUser.save();
-      console.log("Saved user:", savedUser);
-    } catch (err) {
-      console.error("Save error:", err);
-      return NextResponse.json(
-        { error: "Failed to save user" },
-        { status: 500 }
-      );
-    }
+    const savedUser = await newUser.save();
+    console.log("✅ User saved to DB:", savedUser);
 
-    // --- CALL SEND EMAIL HERE ---
     try {
-      console.log(
-        "About to call sendEmail with:",
+      await sendEmail({
         email,
-        "VERIFY",
-        savedUser._id
-      );
-      await sendEmail({ email, emailType: "VERIFY", userId: savedUser._id });
-      console.log("sendEmail finished");
-    } catch (mailError) {
-      console.error("sendEmail error:", mailError);
-      // Optionally, delete the user if email fails
-      // await User.findByIdAndDelete(savedUser._id);
+        emailType: "VERIFY",
+        userId: savedUser._id.toString(),
+      });
+      console.log("📨 Verification email sent");
+    } catch (emailErr) {
+      console.error("❌ Failed to send verification email:", emailErr);
       return NextResponse.json(
-        { error: "Failed to send verification email" },
+        { error: "User saved, but failed to send verification email." },
         { status: 500 }
       );
     }
@@ -79,7 +69,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: unknown) {
-    console.error("Registration error:", error);
+    console.error("❌ Registration error:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unexpected error occurred";
     return NextResponse.json({ error: errorMessage }, { status: 500 });

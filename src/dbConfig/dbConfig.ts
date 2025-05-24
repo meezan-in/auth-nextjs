@@ -1,32 +1,34 @@
 import mongoose from "mongoose";
 
+let isConnected = false;
+
 export async function connect() {
+  if (isConnected) {
+    console.log("Already connected to MongoDB.");
+    return;
+  }
+
   const MONGO_URI = process.env.MONGO_URI;
   if (!MONGO_URI) {
-    console.error("MONGO_URI environment variable is not set!");
+    console.error("MONGO_URI is not defined in environment variables.");
     process.exit(1);
   }
 
   try {
-    await mongoose.connect(MONGO_URI, {
-      // Add options if needed, e.g., useNewUrlParser, useUnifiedTopology
+    await mongoose.connect(MONGO_URI);
+
+    mongoose.connection.on("connected", () => {
+      console.log("✅ MongoDB connected successfully.");
     });
 
-    const connection = mongoose.connection;
-
-    connection.on("connected", () => {
-      console.log("MongoDB connected successfully");
-    });
-
-    connection.on("error", (err) => {
-      console.error(
-        "MongoDB connection error. Please make sure MongoDB is running. " + err
-      );
+    mongoose.connection.on("error", (err) => {
+      console.error("❌ MongoDB connection error:", err);
       process.exit(1);
     });
+
+    isConnected = true;
   } catch (error) {
-    console.error("Something went wrong during MongoDB connection!");
-    console.error(error);
+    console.error("❌ Failed to connect to MongoDB:", error);
     process.exit(1);
   }
 }

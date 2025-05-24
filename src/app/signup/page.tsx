@@ -19,11 +19,27 @@ export default function SignupPage() {
   const onSignup = async () => {
     try {
       setLoading(true);
+      const response = await fetch("/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to sign up");
+      }
+
       toast.success("Signup successful! Please check your email.");
       router.push("/login");
     } catch (error: unknown) {
       if (error instanceof Error) toast.error(error.message);
       else toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
